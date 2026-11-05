@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rubra VI</title>
+<link rel="stylesheet" href="styles.css?v=1793912573">
+</head>
+<body>
+<header>
+  <div class="hl"><h1>Rubra VI <span class="sub">for the <a href="https://supercriticalsynthesizers.com" target="_blank" rel="noopener">Redshift 6 by Supercritical Synthesizers</a></span></h1></div>
+  <div class="hc">
+    <div class="parts" id="parts"><span>Part</span></div>
+    <div class="views"><button id="viewPanel" class="on">Panel</button><button id="viewMod">Modulation</button></div>
+  </div>
+  <div class="hr">
+    <select id="port" title="MIDI output"><option>Waiting for MIDI…</option></select>
+    <span id="midiStatus">Requesting MIDI access…</span>
+    <button id="clearPart" title="Use after Init Active Part on the Redshift">Clear part values</button>
+    <button id="openSettings">Settings</button>
+  </div>
+</header>
+<div class="toolbar">
+  <span class="tb-label">Patch</span>
+  <button id="initPart" title="Send a plain, playable starting sound to this part">Init part</button>
+  <button id="initAll" title="Reset all six parts like the Redshift's Init preset: Part 1 on, Parts 2–6 off">Init all</button>
+  <button id="sendPart" title="Send every part setting shown on screen">Send part</button>
+  <button id="audition" title="Play a short chord on this part">Audition</button>
+  <button id="savePatch">Save patch…</button>
+  <button id="loadPatch">Load patch…</button>
+  <input type="file" id="patchFile" accept=".json" hidden>
+  <span class="spacer"></span>
+  <button id="speedTest">Speed test…</button>
+</div>
+<main id="main"></main>
+<main id="modView" class="hidden">
+  <section class="panel modpanel">
+    <div class="panel-title"><h2>Modulation</h2><span class="tag">Solid cables are set live over MIDI. Dashed cables are set by hand on the Redshift, and stay dashed until you tick them done. Click anything to edit it.</span></div>
+    <div class="modwrap"><div class="modleft"><div id="modGraph"></div><div id="kbSlot"></div></div><aside id="modEditor"></aside></div>
+  </section>
+</main>
+<main id="kbHome">
+  <section class="panel" id="kbSection">
+    <div class="panel-title"><h2>Preview keyboard</h2><span class="tag" id="kbTag"></span><span class="kb-tips" title="Computer keys A–; play the keyboard, Z/X change octave.">Computer keys A–; play the keyboard, Z/X change octave.</span></div>
+    <div class="kb-wrap">
+      <div class="kb-tools">
+        <label title="A hardware keyboard plays the same target as these keys. Pick a port that does not also reach the Redshift directly, or notes will double.">MIDI in
+          <select id="midiIn"><option value="">None</option></select>
+        </label>
+        <div class="midi-act" id="midiAct" title="Last message from MIDI in, and the channel the app sent it on">No MIDI in yet</div>
+        <label>Play on
+          <select id="playOn"><option value="part">Selected part</option><option value="A">Group A</option><option value="B">Group B</option><option value="C">Group C</option><option value="perform">Perform channel</option></select>
+        </label>
+        <button id="hold">Hold: off</button>
+        <label>Chord
+          <select id="chord"><option value="0">Single note</option><option value="0,4,7">Major</option><option value="0,3,7">Minor</option><option value="0,7">Fifth</option><option value="0,4,7,11">Major 7</option><option value="0,3,7,10">Minor 7</option></select>
+        </label>
+        <label>Velocity <input id="vel" type="range" min="1" max="127" value="100"></label>
+        <label>Octave <span id="octLabel"></span>
+          <span><button id="octDown">−</button> <button id="octUp">+</button></span>
+        </label>
+        <button id="panic">All notes off</button>
+      </div>
+      <div class="kb" id="kb"></div>
+    </div>
+  </section>
+</main>
+<footer><span class="credits"><a class="credit" href="https://www.silverphonic.com" target="_blank" rel="noopener">©2026 Silverphonic SoundLab</a><span class="sep">·</span><a class="credit" href="mailto:info@silverphonic.com?subject=Rubra%20VI">info@silverphonic.com</a></span></footer>
+
+<dialog id="settings">
+  <h2>MIDI channels</h2>
+  <div class="grid" id="chanGrid"></div>
+  <div class="actions"><button id="closeSettings">Done</button></div>
+</dialog>
+<dialog id="speedDlg">
+  <h2>Speed test</h2>
+  <p id="stInfo"></p>
+  <ul id="stList"></ul>
+  <p>Spacing for this run: <b id="stSpacing"></b></p>
+  <div class="actions" style="justify-content:flex-start">
+    <button id="stRun">Run</button>
+    <button id="stGood">All 8 match</button>
+    <button id="stBad">Something's wrong</button>
+  </div>
+  <p id="stResult"></p>
+  <div class="actions"><button id="stClose">Done</button></div>
+</dialog>
+<script src="app.js?v=1793912573"></script>
+<script src="modview.js?v=1793912573"></script>
+</body>
+</html>
