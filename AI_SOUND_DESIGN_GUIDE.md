@@ -72,7 +72,13 @@ Math **Trigger** inputs use: None, NoteOn, NoteOnPt, NoteOff, NteOffPt, LFO1, LF
 
 ## Modulation destinations (for routes)
 
-Cutoff, Reso, Mode, Separat, Depth, Pitch, Tune2, Detune, Balance, Noise, PW1, PW2, Charactr, Drive, Gain, Volume, Pan, LFO 1 Hz, LFO 2 Hz, LFO 3 Hz, LFO 4 Hz, Amp Atk, Amp Dec, Amp Sus, Amp Rel, VCF Atk, VCF Dec, VCF Sus, VCF Rel, DCO Atk, DCO Dec, DCO Sus, DCO Rel, Aux Atk, Aux Dec, Aux Sus, Aux Rel
+Cutoff, Reso, Mode, Separat, Depth, Pitch, Tune2, Detune, Balance, Noise, PW1, PW2, Charactr, Drive, Volume, Pan, LFO 1 Hz, LFO 2 Hz, LFO 3 Hz, LFO 4 Hz, Amp Atk, Amp Dec, Amp Sus, Amp Rel, VCF Atk, VCF Dec, VCF Sus, VCF Rel, DCO Atk, DCO Dec, DCO Sus, DCO Rel, Aux Atk, Aux Dec, Aux Sus, Aux Rel
+
+Volume as a destination is the part volume on the Redshift's **[PARTS]** page. There is no Gain destination you can rely on: the manual lists one, but the Redshift has no Gain control, so don't use it.
+
+## LFO waves: bipolar or unipolar
+
+Tri, Sqr, Sin, Saw and S&H are **bipolar** (they swing both up and down). RevSaw, Exp, RevExp, Log and RevLog are **unipolar** (they move one way only). Choose deliberately when an LFO drives something with a range, such as a Math Crossfade **Control** or a Switch: a unipolar wave covers only part of the range a bipolar one does, so the effect can look as if it isn't working.
 
 ## Math slots: which settings each engine uses
 

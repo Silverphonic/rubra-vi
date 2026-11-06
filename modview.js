@@ -1,7 +1,7 @@
 'use strict';
 // Modulation view: sources -> Math -> destinations, drawn as a patch.
 // Uses globals from app.js: BY, MAP, state, part, shown, fmt, makeControl, controls, refresh, viewHooks, store, el, $
-const DESTS = ['Cutoff', 'Reso', 'Mode', 'Separat', 'Depth', 'Pitch', 'Tune2', 'Detune', 'Balance', 'Noise', 'PW1', 'PW2', 'Charactr', 'Drive', 'Gain', 'Volume', 'Pan',
+const DESTS = ['Cutoff', 'Reso', 'Mode', 'Separat', 'Depth', 'Pitch', 'Tune2', 'Detune', 'Balance', 'Noise', 'PW1', 'PW2', 'Charactr', 'Drive', 'Volume', 'Pan',
   'LFO 1 Hz', 'LFO 2 Hz', 'LFO 3 Hz', 'LFO 4 Hz', 'Amp Atk', 'Amp Dec', 'Amp Sus', 'Amp Rel', 'VCF Atk', 'VCF Dec', 'VCF Sus', 'VCF Rel', 'DCO Atk', 'DCO Dec', 'DCO Sus', 'DCO Rel', 'Aux Atk', 'Aux Dec', 'Aux Sus', 'Aux Rel'];
 const LFOS = ['LFO 1', 'LFO 2', 'LFO 3', 'LFO 4'], ENVS = ['Amp Env', 'VCF Env', 'DCO Env', 'Aux Env'], MATHS = ['Math 1', 'Math 2', 'Math 3', 'Math 4'];
 const BEATS = { '8/1': 32, '4/1': 16, '2/1': 8, '1/1': 4, '1/2': 2, '1/4.': 1.5, '1/2t': 4 / 3, '1/4': 1, '1/8.': .75, '1/4t': 2 / 3, '1/8': .5, '1/16.': .375, '1/8t': 1 / 3, '1/16': .25, '1/32.': .1875, '1/16t': 1 / 6, '1/32': .125, '1/64.': .09375, '1/32t': 1 / 12, '1/64': .0625 };
@@ -17,6 +17,8 @@ function colorOf(name) {
   let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return OTHER_COLORS[h % OTHER_COLORS.length];
 }
+const UNIPOLAR = ['RevSaw', 'Exp', 'RevExp', 'Log', 'RevLog'];
+const waveTag = w => UNIPOLAR.includes(w) ? '+' : '±';   // ± swings both ways, + one way only
 const val = (sec, name) => { const p = BY[sec][name]; return p.kind === 'enum' ? p.options[shown(p)] : shown(p); };
 const routes = () => state.routes[part];
 let selected = { kind: 'lfo', name: 'LFO 1' }, animRefs = [];
@@ -130,7 +132,7 @@ function render() {
     if (n.kind !== 'dest') svg += `<rect class="stripe" x="${n.x}" y="${n.y + 6}" width="4" height="${n.h - 12}" rx="2" style="fill:${nc}"/><circle class="jack out" cx="${n.x + n.w}" cy="${n.kind === 'math' ? n.y + 22 : n.y + n.h / 2}" r="5" style="fill:${nc};stroke:${nc}"/>`;
     if (n.kind === 'lfo') {
       const w = val(n.name, 'Wave');
-      svg += `<text class="nt" x="${n.x + 12}" y="${n.y + 20}">${n.name}</text><text class="ns" x="${n.x + n.w - 12}" y="${n.y + 20}" text-anchor="end">${esc(w)} · ${esc(lfoLabel(n.name))}</text>`;
+      svg += `<text class="nt" x="${n.x + 12}" y="${n.y + 20}">${n.name}</text><text class="ns" x="${n.x + n.w - 12}" y="${n.y + 20}" text-anchor="end">${esc(w)} ${waveTag(w)} · ${esc(lfoLabel(n.name))}</text>`;
       svg += `<path class="wave" style="stroke:${nc}" d="${wavePath(w, n.x + 12, n.y + 30, n.w - 24, 32)}"/><line class="phase" id="ph-${n.name.replace(' ', '')}" x1="${n.x + 12}" x2="${n.x + 12}" y1="${n.y + 28}" y2="${n.y + 64}"/>`;
       animRefs.push({ name: n.name, x0: n.x + 12, w: n.w - 24 });
     } else if (n.kind === 'env') {
@@ -173,7 +175,7 @@ function srcButton(s) {
 function destGesture(d) {
   const knob = { Cutoff: '[CUTOFF]', Reso: '[RESONANCE]', Mode: '[MODE]', Detune: '[DETUNE]', Balance: '[BALANCE]', Charactr: '[CHARACTER]', Drive: '[DRIVE]' }[d];
   if (knob) return `turn ${knob}`;
-  const page = { Pitch: ['[PERFORM]', 'Pitch'], Pan: ['[AMP]', 'Pan'], Gain: ['[AMP]', 'Gain'], Volume: ['[AMP]', 'Volume'], Tune2: ['[DCO]', 'Tune2'], Noise: ['[DCO]', 'Noise'], PW1: ['[DCO]', 'PW 1'], PW2: ['[DCO]', 'PW 2'], Separat: ['[VCF]', 'Sep'], Depth: ['[VCF]', 'Depth'] }[d];
+  const page = { Pitch: ['[PERFORM]', 'Pitch'], Pan: ['[AMP]', 'Pan'], Volume: ['[PARTS]', 'Volume'], Tune2: ['[DCO]', 'Tune2'], Noise: ['[DCO]', 'Noise'], PW1: ['[DCO]', 'PW 1'], PW2: ['[DCO]', 'PW 2'], Separat: ['[VCF]', 'Sep'], Depth: ['[VCF]', 'Depth'] }[d];
   if (page) return `press ${page[0]}, turn ‹${page[1]}›`;
   let m = d.match(/^LFO (\d) Hz$/); if (m) return `press [LFO ${m[1]}], turn ‹Rate›`;
   m = d.match(/^(Amp|VCF|DCO|Aux) (Atk|Dec|Sus|Rel)$/); if (m) return `press [${m[1].toUpperCase()} ENV], turn ‹${m[2]}›`;

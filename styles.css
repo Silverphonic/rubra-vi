@@ -552,3 +552,36 @@ body.size-s #main .module:not(.sparse):not(.m-character-drive) .knob { width: ca
 body.size-s #main .module:not(.sparse):not(.m-character-drive) .ctl .name { font-size: calc(9px * min(var(--ks, 1), 1.22)); }
 body.size-s #main .module:not(.sparse):not(.m-character-drive) .ctl .val { font-size: calc(9.5px * min(var(--ks, 1), 1.22)); min-width: calc(46px * min(var(--ks, 1), 1.22)); }
 body.size-s #main .module:not(.sparse):not(.m-character-drive) .ctl select { font-size: calc(10px * min(var(--ks, 1), 1.2)); }
+
+/* Modulation page: keep the right-hand editor visible at any window width.
+   The graph column may shrink (the graph scales down to fit) instead of pushing the editor off-screen. */
+.modwrap, body.size-s .modwrap, body.size-l .modwrap { grid-template-columns: minmax(0, max-content) 290px; }
+#modGraph svg { max-width: 100%; height: auto; }
+@media (max-width: 760px) {
+  .modwrap, body.size-s .modwrap, body.size-l .modwrap { grid-template-columns: 1fr; }
+}
+
+/* ---------- Settings: channel map, channel test ---------- */
+dialog.settings { width: 460px; max-height: 88vh; overflow-y: auto; }
+dialog.settings h2 { font-family: 'Audiowide', sans-serif; font-weight: 400; letter-spacing: .06em; }
+dialog.settings h3 { font-family: 'Audiowide', sans-serif; font-weight: 400; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #d9d9dd; margin: 18px 0 6px; padding-top: 12px; border-top: 1px solid #3a3a40; }
+dialog.settings h3:first-of-type { border-top: 0; padding-top: 0; margin-top: 4px; }
+.set-lead { font-size: 12px; color: #a3a3aa; margin: 0 0 8px; line-height: 1.45; }
+.set-mpe { font-size: 12px; background: #000; border: 1px solid #2a2a2e; border-radius: 6px; padding: 6px 9px; margin-bottom: 10px; color: #c9c9ce; }
+dialog.settings .grid { grid-template-columns: 90px 70px; justify-content: center; background: #0d1530; border: 1px solid #2a3a6a; border-radius: 8px; padding: 10px 14px; gap: 6px 14px; }
+.cg-lab { text-align: right; font-weight: 600; }
+.cg-lab.clash { color: var(--led); }
+dialog.settings select.clash { border-color: var(--led); color: var(--led); }
+.chan-warn { margin-top: 8px; font-size: 12px; color: #ffd0cc; background: rgba(255,59,48,.12); border: 1px solid var(--led); border-radius: 6px; padding: 7px 9px; line-height: 1.45; }
+.set-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.set-hint { font-size: 11px; color: #77777e; }
+dialog.settings button:disabled { opacity: .5; cursor: default; }
+dialog.settings button.primary { border-color: var(--led); color: #fff; }
+#chanTest { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.ct-q { font-size: 13px; font-weight: 600; }
+.ct-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.ct-note { font-size: 11px; color: #8a8a90; }
+.ct-sum { font-size: 12px; border-radius: 6px; padding: 7px 9px; line-height: 1.5; }
+.ct-sum.ok { background: rgba(76,211,138,.12); border: 1px solid #4cd38a; color: #c8f2da; }
+.ct-sum.bad { background: rgba(226,163,58,.12); border: 1px solid var(--warn); color: #f3dcb6; }
+.ct-sum span { color: #d8c29c; font-size: 11px; }

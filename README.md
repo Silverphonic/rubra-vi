@@ -17,7 +17,7 @@ It works with Redshift 6 firmware 1.7. It is an independent project, not made by
 
 1. Open the link above and click **Allow** when the browser asks to use MIDI devices.
 2. **MIDI output:** pick the port your Redshift is connected through, in the menu at the top.
-3. **Settings:** set your channels if they're not the Redshift defaults (Perform 1, Parts 2–7, Groups A–C 8–10), and the message spacing. **Speed test…** in the Patch bar finds the fastest reliable speed for your setup.
+3. **Settings:** the MIDI channels must match the Redshift's own [SETTINGS] → MIDI Channels page (defaults: Perform 1, Parts 2–7, Groups A–C 8–10, MPE Mode Off). Settings shows them in the same order, warns about clashes, and has a **channel test** that plays a note on each part so you can watch the right part button blink. **Speed test…** in the Patch bar finds the fastest reliable message spacing for your setup.
 4. **MIDI in** (on the preview keyboard): optionally choose a hardware keyboard to play through the app. Pick a port that doesn't also reach the Redshift directly, or notes will double.
 
 If you clicked **Block** by mistake, click the icon at the left of the address bar and allow MIDI for this site, then reload.
@@ -30,6 +30,7 @@ If you clicked **Block** by mistake, click the icon at the left of the address b
 - **To-do window:** anything the Redshift can't take over MIDI (Mod Matrix routings, part Group) appears here as steps to do by hand. Tick each one off when done.
 - **Patch bar:** Init part, Init all, Send part, Audition, Save patch…, Load patch… Patches are saved as files you can share.
 - **Computer keyboard:** keys A–; play notes, Z/X change octave.
+- **Reset a part on the Redshift itself?** Use **Settings → Forget** for that part (or all parts) so the app stops showing old values.
 - **Remember to save presets on the Redshift itself** ([SHIFT] + [OK]); patch files can't store your by-hand routings on the synth.
 
 ## Designing sounds with an AI assistant

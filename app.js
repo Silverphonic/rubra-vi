@@ -205,7 +205,9 @@ function makeControl(p) {
   let update;
   if (p.kind === 'enum') {
     const sel = el('select');
-    p.options.forEach((o, i) => { const opt = el('option', null, o); opt.value = i; sel.appendChild(opt); });
+    const isWave = /^LFO \d$/.test(p.section) && p.name === 'Wave', uni = ['RevSaw', 'Exp', 'RevExp', 'Log', 'RevLog'];
+    if (isWave) wrap.title += '\n± swings both ways (bipolar)\n+ goes one way only (unipolar)';
+    p.options.forEach((o, i) => { const opt = el('option', null, isWave ? `${o} ${uni.includes(o) ? '+' : '±'}` : o); opt.value = i; sel.appendChild(opt); });
     sel.addEventListener('change', () => setRaw(p, Number(sel.value)));
     wrap.appendChild(sel);
     update = () => { sel.value = shown(p); wrap.classList.toggle('unsent', getRaw(p) == null); };
@@ -445,24 +447,91 @@ function buildHeader() {
     b.addEventListener('click', () => selectPart(i)); $('parts').appendChild(b);
   }
   paintGroupBadges();
+  const fw = $('forgetWhich');
+  for (let i = 0; i < 6; i++) { const o = el('option', null, `Part ${i + 1}`); o.value = i; fw.appendChild(o); }
+  { const o = el('option', null, 'All parts'); o.value = 'all'; fw.appendChild(o); }
+  const fwLabel = () => { $('clearPart').textContent = fw.value === 'all' ? 'Forget all parts' : `Forget Part ${Number(fw.value) + 1}`; };
+  fw.addEventListener('change', fwLabel);
   $('clearPart').addEventListener('click', () => {
-    if (!confirm(`Clear the app's record of Part ${part + 1}? Do this after Init Active Part on the Redshift.`)) return;
-    state.parts[part] = {}; state.routes[part] = []; store.set('state', state); refresh();
+    const all = fw.value === 'all', list = all ? [0, 1, 2, 3, 4, 5] : [Number(fw.value)];
+    const what = all ? 'all six parts' : `Part ${list[0] + 1}`;
+    if (!confirm(`Forget the app's record of ${what}? Its knobs go back to "not sent yet" and its by-hand routings are cleared. Nothing is sent to the Redshift.`)) return;
+    list.forEach(i => { state.parts[i] = {}; state.routes[i] = []; });
+    store.set('state', state); refresh();
+    $('clearPart').textContent = 'Forgotten ✓'; setTimeout(fwLabel, 1500);
   });
-  // settings dialog
-  const grid = $('chanGrid');
+  // settings dialog: channel map laid out like the Redshift's [SETTINGS] > MIDI Channels page
+  const DEFAULTS = { perform: 1, parts: [2, 3, 4, 5, 6, 7], groups: [8, 9, 10] };
+  const saveChans = () => { store.set('settings', settings); selectPart(part); renderChanGrid(); };
   const chanSel = (val, onChange) => { const s = el('select'); for (let c = 1; c <= 16; c++) { const o = el('option', null, String(c)); o.value = c; s.appendChild(o); } s.value = val; s.addEventListener('change', () => onChange(Number(s.value))); return s; };
-  grid.appendChild(el('span', null, 'Perform')); grid.appendChild(chanSel(settings.perform, v => { settings.perform = v; store.set('settings', settings); selectPart(part); }));
-  for (let i = 0; i < 6; i++) { grid.appendChild(el('span', null, `Part ${i + 1}`)); grid.appendChild(chanSel(settings.parts[i], v => { settings.parts[i] = v; store.set('settings', settings); selectPart(part); })); }
-  for (let g = 0; g < 3; g++) { grid.appendChild(el('span', null, `Group ${'ABC'[g]}`)); grid.appendChild(chanSel(settings.groups[g], v => { settings.groups[g] = v; store.set('settings', settings); selectPart(part); })); }
-  grid.appendChild(el('span', null, 'Message spacing'));
-  const sp = el('select');
+  function chanEntries() {
+    return [['Perform', settings.perform], ...settings.parts.map((c, i) => [`Part ${i + 1}`, c]), ...settings.groups.map((c, g) => [`Group ${'ABC'[g]}`, c])];
+  }
+  function renderChanGrid() {
+    const grid = $('chanGrid'); grid.innerHTML = '';
+    const ents = chanEntries(), count = {};
+    ents.forEach(([, c]) => count[c] = (count[c] || 0) + 1);
+    const row = (label, c, onChange) => {
+      const lab = el('span', 'cg-lab', label), sel = chanSel(c, onChange);
+      if (count[c] > 1) { lab.classList.add('clash'); sel.classList.add('clash'); }
+      grid.appendChild(lab); grid.appendChild(sel);
+    };
+    row('Perform', settings.perform, v => { settings.perform = v; saveChans(); });
+    settings.parts.forEach((c, i) => row(`Part ${i + 1}`, c, v => { settings.parts[i] = v; saveChans(); }));
+    settings.groups.forEach((c, g) => row(`Group ${'ABC'[g]}`, c, v => { settings.groups[g] = v; saveChans(); }));
+    const clashes = Object.keys(count).filter(c => count[c] > 1).map(c => `Channel ${c} is used by ${ents.filter(e => e[1] == c).map(e => e[0]).join(' and ')}.`);
+    const w = $('chanWarn');
+    w.innerHTML = clashes.length ? clashes.join('<br>') + '<br>The Redshift ignores every message on a channel that is assigned twice, so give each one its own channel.' : '';
+    w.classList.toggle('hidden', !clashes.length);
+    const isDef = settings.perform === DEFAULTS.perform && settings.parts.join() === DEFAULTS.parts.join() && settings.groups.join() === DEFAULTS.groups.join();
+    $('chanDefaults').disabled = isDef;
+    $('chanDefaults').textContent = isDef ? 'Using Redshift defaults' : 'Reset to Redshift defaults';
+  }
+  $('chanDefaults').addEventListener('click', () => {
+    settings.perform = DEFAULTS.perform; settings.parts = [...DEFAULTS.parts]; settings.groups = [...DEFAULTS.groups]; saveChans();
+  });
+  // channel test: a short note on each part's channel; the matching part button on the Redshift blinks
+  const ct = { i: -1, res: [] };
+  const testNote = ch => { raw([0x90 | (ch - 1), 60, 90]); setTimeout(() => raw([0x80 | (ch - 1), 60, 0]), 350); };
+  function ctRender() {
+    const box = $('chanTest'); box.innerHTML = '';
+    if (ct.i < 0) {
+      const res = ct.res;
+      if (res.length) {
+        const bad = res.map((r, i) => [r, i]).filter(([r]) => r !== 'yes');
+        const p = el('div', bad.length ? 'ct-sum bad' : 'ct-sum ok');
+        p.innerHTML = bad.length
+          ? bad.map(([r, i]) => `Part ${i + 1} (channel ${settings.parts[i]}): ${r === 'no' ? 'did not blink' : 'skipped'}`).join('<br>') +
+            '<br><span>If a part didn\'t blink: check that the Redshift\'s Part ' + (bad[0][1] + 1) + ' reads channel ' + settings.parts[bad[0][1]] + ', that MPE Mode is Off, that the part isn\'t muted or switched off, and that your MIDI hub passes that channel.</span>'
+          : 'All six parts responded on the right channels.';
+        box.appendChild(p);
+      }
+      const go = el('button', 'primary', res.length ? 'Run the test again' : 'Start the channel test');
+      go.addEventListener('click', () => {
+        if (!out) { box.querySelector('.ct-note')?.remove(); box.appendChild(el('div', 'ct-note', 'Choose a MIDI output at the top of the window first.')); return; }
+        ct.i = 0; ct.res = []; ctRender(); testNote(settings.parts[0]);
+      });
+      box.appendChild(go);
+      return;
+    }
+    const i = ct.i, ch = settings.parts[i];
+    box.appendChild(el('div', 'ct-q', `Part ${i + 1}, channel ${ch}: did the Redshift's Part ${i + 1} button blink?`));
+    const btns = el('div', 'ct-btns');
+    const answer = r => { ct.res[i] = r; ct.i = i + 1 < 6 ? i + 1 : -1; ctRender(); if (ct.i >= 0) testNote(settings.parts[ct.i]); };
+    [['Yes', () => answer('yes')], ['No', () => answer('no')], ['Play again', () => testNote(ch)], ['Skip', () => answer('skip')]].forEach(([t, f]) => { const b = el('button', t === 'Yes' ? 'primary' : null, t); b.addEventListener('click', f); btns.appendChild(b); });
+    box.appendChild(btns);
+    box.appendChild(el('div', 'ct-note', `Step ${i + 1} of 6. A part that is muted or switched off may not blink; switch it on first, or skip it.`));
+  }
+  const sp = $('spacingSel');
   [1, 2, 3, 4, 6, 8, 12, 16].forEach(ms => { const o = el('option', null, ms + ' ms per parameter'); o.value = ms; sp.appendChild(o); });
-  sp.value = settings.spacing; sp.id = 'spacingSel';
+  sp.value = settings.spacing;
   sp.addEventListener('change', () => { settings.spacing = Number(sp.value); store.set('settings', settings); });
-  grid.appendChild(sp);
-  $('openSettings').addEventListener('click', () => { $('spacingSel').value = settings.spacing; $('settings').showModal(); });
-  $('closeSettings').addEventListener('click', () => $('settings').close());
+  $('openSettings').addEventListener('click', () => {
+    $('spacingSel').value = settings.spacing; renderChanGrid(); ct.i = -1; ct.res = []; ctRender();
+    fw.value = part; fwLabel();
+    $('settings').showModal();
+  });
+  $('closeSettings').addEventListener('click', () => { if (ct.i >= 0) raw([0xB0 | (settings.parts[ct.i] - 1), 123, 0]); $('settings').close(); });
 }
 
 // ---------- keyboard ----------

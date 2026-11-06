@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rubra VI</title>
-<link rel="stylesheet" href="styles.css?v=1793912573">
+<link rel="stylesheet" href="styles.css?v=1793984168">
 </head>
 <body>
 <header>
@@ -16,7 +16,6 @@
   <div class="hr">
     <select id="port" title="MIDI output"><option>Waiting for MIDI…</option></select>
     <span id="midiStatus">Requesting MIDI access…</span>
-    <button id="clearPart" title="Use after Init Active Part on the Redshift">Clear part values</button>
     <button id="openSettings">Settings</button>
   </div>
 </header>
@@ -67,10 +66,23 @@
 </main>
 <footer><span class="credits"><a class="credit" href="https://www.silverphonic.com" target="_blank" rel="noopener">©2026 Silverphonic SoundLab</a><span class="sep">·</span><a class="credit" href="mailto:info@silverphonic.com?subject=Rubra%20VI">info@silverphonic.com</a></span></footer>
 
-<dialog id="settings">
-  <h2>MIDI channels</h2>
+<dialog id="settings" class="settings">
+  <h2>Settings</h2>
+  <h3>MIDI channels</h3>
+  <p class="set-lead">These must match your Redshift. On the Redshift, press <b>[SETTINGS]</b> and scroll to <b>MIDI Channels</b>: it should read exactly this.</p>
+  <div class="set-mpe">MPE <b>Mode</b> must be <b>Off</b>. The Redshift ignores these channel settings while MPE is on.</div>
   <div class="grid" id="chanGrid"></div>
-  <div class="actions"><button id="closeSettings">Done</button></div>
+  <div class="chan-warn hidden" id="chanWarn"></div>
+  <div class="set-row"><button id="chanDefaults">Reset to Redshift defaults</button><span class="set-hint">Perform 1 · Parts 2–7 · Groups 8–10</span></div>
+  <h3>Channel test</h3>
+  <p class="set-lead">Plays a short note on each part's channel in turn. Watch the part buttons on the Redshift: the matching one should blink.</p>
+  <div id="chanTest"></div>
+  <h3>Message spacing</h3>
+  <div class="set-row"><select id="spacingSel"></select><span class="set-hint">Use <b>Speed test…</b> to find the fastest reliable setting.</span></div>
+  <h3>Reset a part on the Redshift?</h3>
+  <p class="set-lead">If you used <b>[SHIFT] + [PART]</b> on the synth (or <b>[SHIFT] + [PERFORM]</b> for the whole preset), choose it here and click Forget, so the app stops showing the old settings and routings. It doesn't send anything to the Redshift.</p>
+  <div class="set-row"><select id="forgetWhich"></select><button id="clearPart">Forget</button></div>
+  <div class="actions"><button id="closeSettings" class="primary">Done</button></div>
 </dialog>
 <dialog id="speedDlg">
   <h2>Speed test</h2>
@@ -85,7 +97,7 @@
   <p id="stResult"></p>
   <div class="actions"><button id="stClose">Done</button></div>
 </dialog>
-<script src="app.js?v=1793912573"></script>
-<script src="modview.js?v=1793912573"></script>
+<script src="app.js?v=1793984168"></script>
+<script src="modview.js?v=1793984168"></script>
 </body>
 </html>
